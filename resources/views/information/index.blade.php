@@ -3,7 +3,7 @@
 @section('content')
 <h2>Daftar Informasi</h2>
 
-<!-- Dashboard Ringkas -->
+<!-- Dashboard -->
 <table border="1" cellpadding="6" cellspacing="0">
     <tr bgcolor="#eeeeee">
         <th>Total Data</th>
@@ -19,7 +19,7 @@
 
 <br>
 
-<!-- Search & Tambah Data -->
+<!-- Search & Tambah -->
 <table border="0" width="100%">
     <tr>
         <td>
