@@ -6,24 +6,36 @@ use App\Models\Category;
 use App\Models\Information;
 use Illuminate\Http\Request;
 
-class AdminInformationController extends Controller
+class InformationController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $informations = Information::with('category')->latest()->get();
-        
-        // Fitur Bonus: Statistik Dashboard Ringkas
-        $totalInformasi = $informations->count();
-        $totalPublished = $informations->where('status', 'published')->count();
-        $totalDraft = $informations->where('status', 'draft')->count();
+        $query = Information::with('category');
 
-        return view('admin.index', compact('informations', 'totalInformasi', 'totalPublished', 'totalDraft'));
+        // Fitur Search
+        if ($request->has('search') && $request->search != '') {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('judul', 'like', "%{$search}%")
+                  ->orWhere('ringkasan', 'like', "%{$search}%");
+            });
+        }
+
+        // Fitur Pagination (5 data per halaman)
+        $informations = $query->latest()->paginate(5);
+
+        // Ringkasan Statistik Dashboard
+        $totalInformasi = Information::count();
+        $totalPublished = Information::where('status', 'published')->count();
+        $totalDraft = Information::where('status', 'draft')->count();
+
+        return view('information.index', compact('informations', 'totalInformasi', 'totalPublished', 'totalDraft'));
     }
 
     public function create()
     {
         $categories = Category::all();
-        return view('admin.create', compact('categories'));
+        return view('information.create', compact('categories'));
     }
 
     public function store(Request $request)
@@ -39,21 +51,20 @@ class AdminInformationController extends Controller
 
         Information::create($validated);
 
-        return redirect()->route('admin.information.index')
-            ->with('success', 'Informasi berhasil ditambahkan!');
+        return redirect()->route('information.index')->with('success', 'Data berhasil disimpan!');
     }
 
     public function show($id)
     {
         $information = Information::with('category')->findOrFail($id);
-        return view('admin.show', compact('information'));
+        return view('information.show', compact('information'));
     }
 
     public function edit($id)
     {
         $information = Information::findOrFail($id);
         $categories = Category::all();
-        return view('admin.edit', compact('information', 'categories'));
+        return view('information.edit', compact('information', 'categories'));
     }
 
     public function update(Request $request, $id)
@@ -70,8 +81,7 @@ class AdminInformationController extends Controller
         $information = Information::findOrFail($id);
         $information->update($validated);
 
-        return redirect()->route('admin.information.index')
-            ->with('success', 'Informasi berhasil diperbarui!');
+        return redirect()->route('information.index')->with('success', 'Data berhasil diperbarui!');
     }
 
     public function destroy($id)
@@ -79,7 +89,6 @@ class AdminInformationController extends Controller
         $information = Information::findOrFail($id);
         $information->delete();
 
-        return redirect()->route('admin.information.index')
-            ->with('success', 'Informasi berhasil dihapus!');
+        return redirect()->route('information.index')->with('success', 'Data berhasil dihapus!');
     }
 }
